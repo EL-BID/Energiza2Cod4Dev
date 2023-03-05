@@ -28,13 +28,14 @@ Ver [Notebook Paso a Paso](https://github.com/EL-BID/Energiza2Cod4Dev/blob/maste
 
 * [Descripción del proyecto](#descripción-del-proyecto)
 
-* [Demostración](#demostracion-del-proyecto)
+* [Guía de instalación](#configuracion-ambiente)
 
-* [Tecnologías utilizadas](#tecnologías-utilizadas)
+* [Guía de usuario](#demostracion-del-proyecto)
 
 * [Licencia](#licencia)
 
-* [Conclusión](#conclusión)
+* [Limitación de responsabilidades](#limitación-de-responsabilidades)
+
 
 ***
 <div id='descripción-del-proyecto' />
@@ -42,10 +43,10 @@ Ver [Notebook Paso a Paso](https://github.com/EL-BID/Energiza2Cod4Dev/blob/maste
 ## Descripción del Proyecto
 “Energizados” es un proyecto construido para mostrar cómo con el uso de aprendizaje automático se puede ayudar a detectar y disminuir las pérdidas no técnicas reduciendo tiempos de regularización e incrementando la precisión de identificación de fraudes.
 
-El marco de detección de pérdidas no técnicas “Energizados” se puede dividir en 4 grandes etapas. La etapa de preprocesamiento de datos, la etapa de ingeniería de variables, la etapa de entrenamientos de modelo y la etapa de evaluación de modelos.
+El marco de detección de pérdidas no técnicas “Energizados” se puede dividir en 3 grandes etapas. La etapa de preprocesamiento de datos, la etapa de contsruccion de modelos simples basados en reglas o modelos baselines y el desarrallo de modelos mas complejos como los supervisados y finalmente la etapa de evaluación de modelos.
 
 <div style="width: 1000px; height: 600px;">
-    <img src="img/Pryecto-Energiza2_4.png" width="100%" height="100%">
+    <img src="img/Pryecto-Energiza2_V23.png" width="100%" height="100%">
 </div>
 
 ### ***Etapa 1 : Preprocesamiento de datos / Exploración / Entendimiento***
@@ -56,9 +57,28 @@ En nuestras pruebas, Energizados se evaluó en dos conjuntos de datos proveídos
 
 Entre otras cosas que se pueden observar en esta etapa es la proporción de usuario fraudulentos y no fraudulentos. En este tipo de problemas es común tener clases desbalanceadas, por lo general la proporción de usuarios fraudulentos no supera el 10%.
 
+### ***Etapa 2 : Construccion de modelos***
+
+En esta etapa primeramente se evaluaron modelos simples o modelos baselines para luego desarrollar modelos mas complejos.
+
+#### ***Modelos simples***
+
+Modelos que a través de reglas analíticas pueden detectar un comportamiento anómalo en el consumo de energía de los usuarios. Estas reglas en general se derivan luego de hacer un analisis exploratorio de los datos y tambien de conocimientos de expertos.
+
+- __Cambio o disminución en el consumo de energía:__  Regla que evalúa si un usuario decrementó dramáticamente su consumo actual con respecto a periodos anteriores.
+- __Consumo constante:__ Regla que evalúa el consumo constante por un periodo largo de tiempo.
+
+#### ***Modelos supervisados***
+
+En lo que respecta a la construccion de los modelos supervisados, se siguieron los siguientes pasos:
+
+- Selección de variables.
+- Manejo de datos desbalanceados.
+- Optimización de hiperparámetros.
+- Entrenamiento final, con los hiperparámetros encontrados en todo el conjunto de datos.
 
 
-### ***Etapa 2 : Ingenieria de variables***
+##### ***Ingenieria de variables***
 
 La ingeniería de variables es el proceso de extracción y selección de las variables más importantes de los datos dados, normalmente se realiza para mejorar la capacidad de aprendizaje del modelo de ML.
 
@@ -86,7 +106,7 @@ En el desarrollo de los modelos, ejecutamos los siguientes pasos:
 
 
 
-### ***Etapa 3 : Entrenamiento de modelos***
+##### ***Entrenamiento de modelos***
 
 En cualquier técnica de aprendizaje automático supervisado, los datos etiquetados se proporcionan inicialmente al clasificador de aprendizaje para su propósito de entrenamiento. Luego, el modelo entrenado se evalúa por su capacidad para predecir y generalizar los datos no etiquetados de manera eficiente.
 
@@ -125,6 +145,10 @@ __Multicapa__
 La red neuronal multicapa es una red donde todas las señales van en una misma dirección de neurona en neurona, esto se denomina feedforward.
 En lo que respecta a la problemática de detección de fraude, las entradas son las variables con sus respectivos pre-procesamientos descritas en las secciones anteriores y la capa de salida nos da la probabilidad de que un usuario esté cometiendo fraude.
 
+<div>
+    <img src="img/nn.png" width="40%" height="40%">
+</div>
+
 __Concatenación LSTM - Multicapa__
 
 Este es un tipo de red neuronal más compleja que la anterior, en éstas las neuronas presentan conexiones que pueden ir al siguiente nivel de neuronas y a su vez, conexiones que pueden ir al nivel anterior, se denominan conexiones feedforward y feedback.
@@ -134,12 +158,19 @@ Es una red neuronal que contiene ciclos internos que realimentan la red, generan
 Se utilizan en problemas donde la secuencia de los datos sí importa, como por ejemplo en problemas de series de tiempo.
 En lo que respecta al problema abordado, los consumos de energía mensuales de los usuarios se los puede tratar como una serie de tiempo.
 
-### ***Etapa 4 : Evaluación de modelos***
+En la siguiente figura se observa como se combinó una red lstm con una red multicapa para la detección de fraudes.
+
+<div>
+    <img src="img/LSTM.png" width="40%" height="40%">
+</div>
+
+### ***Etapa 3 : Evaluación de modelos***
 
 En cualquier técnica de aprendizaje automático supervisado, los datos etiquetados se proporcionan inicialmente al clasificador de aprendizaje para su propósito de entrenamiento. Luego, el modelo entrenado se evalúa por su capacidad para predecir y generalizar los datos no etiquetados de manera eficiente.
 El rendimiento de dichos modelos se evalúa en función de una serie de métricas de evaluación del rendimiento.
 
 En lo que respecta a este proyecto evaluamos en la siguiente métrica.
+
 _Auc-roc_: La curva AUC - ROC es una medida de rendimiento para los problemas de clasificación que tiene en cuenta varios ajustes de umbral. La ROC es una curva de probabilidad y la AUC representa el grado o la medida de separabilidad. Indica en qué medida el modelo es capaz de distinguir entre clases. 
 
 Cuanto más alto sea el AUC, mejor será el modelo para predecir 0s como 0s y 1s como 1s. Por analogía, cuanto mayor sea el AUC, mejor será el modelo para distinguir entre usuarios fraudulentos y aquellos que no lo son.
@@ -148,7 +179,36 @@ Esta curva tiene en el eje-y la medida TPR (True Positive Rate) y en el eje-x la
 - TPR = Recall = TP / (TP+FN)
 - FPR = FP / (FP+TN)
 
-## Instrucciones para configurar el ambiente de ejecución.
+<div>
+    <img src="img/roc_curve.png" width="20%" height="20%">
+</div>
+
+***
+
+<div id='configuracion-ambiente' />
+
+## Guía de instalación
+
+El proyecto contiene la siguiente estructura de carpetas:
+~~~
+Energizado:
+    |--- datos
+    |--- notebooks
+    |--- src :
+    |        |--- modeling
+    |        |--- preprocessing
+    |        |--- helper
+~~~
+
+- datos :  contiene el conjunto de datos para poder ejecutar el codigo.
+- notebooks : contiene las notebooks de ejecucion. Existen dos notebooks una para ser ejecutada en Google - Colab y la otra para ejecutar en un entorno local.
+- src : contiene los modulos python que dan soporte al proyecto.
+
+Como se mencionó existen dos notebooks para poder ejecutar el marco de deteccion de perdidas no tecnicas en la distrubucion de energia. 
+
+Si se quiere ejecutar al proyecto en Google-Colab ejecutar las instrucciones dentro de la notebook para colab para poder configurar Colab.
+
+Si se quiere ejecutar en un entorno local, seguir los siguientes pasos:
 
 1. Tener instalada alguna distribución de Python 3.6 o superior.
 
@@ -162,13 +222,14 @@ Esta curva tiene en el eje-y la medida TPR (True Positive Rate) y en el eje-x la
 
 6. Abrir un consola de comando en el entorno de jupyter lab.
 
-7. Instalar los requerimientos utilizando _pip install -r requirements.txt_.
+7. Instalar los requerimientos utilizando ``` pip install -r requirements.txt  ```
+
 
 ***
 
 <div id='demostracion-del-proyecto' />
 
-## Demostración 
+## Guía de usuario 
 
 Para hacer un demostración del uso de Energizados, compartimos un conjunto de datos anonimizado. El dataset esta conformado de la siguiente manera.
 
@@ -196,17 +257,6 @@ Ver [Notebook Paso a Paso](https://github.com/EL-BID/Energiza2Cod4Dev/blob/maste
 
 ***
 
-<div id='tecnologías-utilizadas' />
-
-## Tecnologías utilizadas 
-
-- Python 3.6 o superior
-- TensorFlow 
-- LGBM 
-- TSFEL
-
-***
-
 <div id='licencia' />
 
 ## Licencia 
@@ -216,11 +266,14 @@ El siguiente proyecto ha sido financiada por el BID. Ver la siguiente licencia [
 
 ***
 
-<div id='conclusión' />
-
-## Conclusión
-
-Con Energizados se mostró que utilizar un proceso basado en Machine Learning para mitigar el problema de pérdidas no técnicas en la distribución de energía, puede ayudar a automatizar el proceso de detección de fraude obteniendo resultados prometedores promoviendo la digitalización de los procesos de la empresa.
+<div id='limitación-de-responsabilidades' />
 
 
 
+## Limitación de responsabilidades
+
+El BID no será responsable, bajo circunstancia alguna, de daño ni indemnización, moral o patrimonial; directo o indirecto; accesorio o especial; o por vía de consecuencia, previsto o imprevisto, que pudiese surgir:
+
+i. Bajo cualquier teoría de responsabilidad, ya sea por contrato, infracción de derechos de propiedad intelectual, negligencia o bajo cualquier otra teoría; y/o
+
+ii. A raíz del uso de la Herramienta Digital, incluyendo, pero sin limitación de potenciales defectos en la Herramienta Digital, o la pérdida o inexactitud de los datos de cualquier tipo. Lo anterior incluye los gastos o daños asociados a fallas de comunicación y/o fallas de funcionamiento de computadoras, vinculados con la utilización de la Herramienta Digital.
