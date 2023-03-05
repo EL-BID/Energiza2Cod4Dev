@@ -72,6 +72,7 @@ Modelos que a través de reglas analíticas pueden detectar un comportamiento an
 
 En lo que respecta a la construccion de los modelos supervisados, se siguieron los siguientes pasos:
 
+- Construcción de variables.
 - Selección de variables.
 - Manejo de datos desbalanceados.
 - Optimización de hiperparámetros.
@@ -84,18 +85,18 @@ La ingeniería de variables es el proceso de extracción y selección de las var
 
 Esta etapa puede ser dividida en 2 subtareas, una tarea para la extracción o derivación de nuevas variables y otra tarea para la selección de las variables más importantes.
 
-**Extracción de variables:**
+_Extracción de variables:_
 
 En lo que respecta a los consumos mensuales de usuarios dados, estos datos por si solo carecen de características estadísticas que reflejen adecuadamente los patrones subyacentes en los datos de consumo de los usuaros, haciendo que los modelos de detección de robo de energía sean menos eficientes. 
 Por lo tanto se crearon nuevas variables, derivadas de los consumos de energia. Estas variables adicionales pueden ser divididas en 3 tipos: 
 
-- Estadísticas: máximo, promedio, mínimo, mediana, son una muestra de los valores estadísticos calculados; 
-- Espectrales derivadas de la serie de consumo: distancia de la señal, pendiente de la señal, varianza de la señal, etc.;
-- Temporales: autocorrelación entre las variables, entropía, centroides, entre otros.
+- __Estadísticas__: máximo, promedio, mínimo, mediana, son una muestra de los valores estadísticos calculados; 
+- __Espectrales derivadas de la serie de consumo__: distancia de la señal, pendiente de la señal, varianza de la señal, etc.;
+- __Temporales__: autocorrelación entre las variables, entropía, centroides, entre otros.
 
 En lo que respecta a otras variables que describen a los usuarios, por ejemplo, tipo de tarifa y actividad económica del usuario. De estas se derivaron variables a través de procesamiento clásicos de variables categóricas, entre los cuales se pueden destacar, creacion de variables dummy, reducción de cardinalidad y encoding.
 
-**Selección de variables:**
+_Selección de variables:_
 
 La selección de variables es el proceso de identificar un subconjunto representativo de variables de un grupo más grande.
 En el desarrollo de los modelos, ejecutamos los siguientes pasos:
