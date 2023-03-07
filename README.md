@@ -7,7 +7,7 @@
 
 
 
-<a target="_blank" href="https://colab.research.google.com/github/EL-BID/Energiza2Cod4Dev/blob/master/notebooks/ejecucion_paso_paso_colab.ipynb">
+<a target="_blank" href="https://colab.research.google.com/github/EL-BID/Energiza2Cod4Dev/blob/master/notebooks/colab_ejecucion_paso_paso.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
 
@@ -43,7 +43,7 @@ Ver [Notebook Paso a Paso](https://github.com/EL-BID/Energiza2Cod4Dev/blob/maste
 ## Descripción del Proyecto
 “Energizados” es un proyecto construido para mostrar cómo con el uso de aprendizaje automático se puede ayudar a detectar y disminuir las pérdidas no técnicas reduciendo tiempos de regularización e incrementando la precisión de identificación de fraudes.
 
-El marco de detección de pérdidas no técnicas “Energizados” se puede dividir en 3 grandes etapas. La etapa de preprocesamiento de datos, la etapa de contsruccion de modelos simples basados en reglas o modelos baselines y el desarrallo de modelos mas complejos como los supervisados y finalmente la etapa de evaluación de modelos.
+El marco de detección de pérdidas no técnicas “Energizados” se puede dividir en 3 grandes etapas. La etapa de preprocesamiento de datos, la etapa de contsruccion de modelos simples basados en reglas o modelos baselines y el desarrallo de modelos mas complejos como los supervisados, luego finalmente la etapa de evaluación de modelos.
 
 <div style="width: 1000px; height: 600px;">
     <img src="img/Pryecto-Energiza2_V23.png" width="100%" height="100%">
@@ -202,12 +202,12 @@ Energizado:
 ~~~
 
 - datos :  contiene el conjunto de datos para poder ejecutar el codigo.
-- notebooks : contiene las notebooks de ejecucion. Existen dos notebooks una para ser ejecutada en Google - Colab y la otra para ejecutar en un entorno local.
+- notebooks : contiene las notebooks de ejecucion. Existen dos notebooks una para ser ejecutada en Google-Colab y la otra para ejecutar en un entorno local.
 - src : contiene los modulos python que dan soporte al proyecto.
 
 Como se mencionó existen dos notebooks para poder ejecutar el marco de deteccion de perdidas no tecnicas en la distrubucion de energia. 
 
-Si se quiere ejecutar al proyecto en Google-Colab ejecutar las instrucciones dentro de la notebook para colab para poder configurar Colab.
+Si se quiere ejecutar el proyecto en Google-Colab seguir las instrucciones dentro de la notebook para colab.
 
 Si se quiere ejecutar en un entorno local, seguir los siguientes pasos:
 
@@ -217,7 +217,7 @@ Si se quiere ejecutar en un entorno local, seguir los siguientes pasos:
 
 3. Descarga/clonar el proyecto de github.
 
-4. Lanzar jupyter lab.
+4. Lanzar jupyter lab ``` jupyter lab  ```
 
 5. Posicionarse en la carpeta del proyecto.
 
