@@ -11,6 +11,8 @@
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=EL-BID_Energiza2Cod4Dev&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=EL-BID_Energiza2Cod4Dev)
+
 Este proyecto presenta un marco de detección de robo eléctrico basado en el aprendizaje automático supervisado utilizando una biblioteca de extracción de variables de series temporales junto con algoritmos de boosting y redes neuronales.
 
 Ver [Notebook Paso a Paso](https://github.com/EL-BID/Energiza2Cod4Dev/blob/master/notebooks/ejecucion_paso_paso.ipynb)
