@@ -231,34 +231,6 @@ def llenar_val_vacios_datetime(df, cols,  dt_value):
         df.loc[:, x] = df[x].fillna(dt_value)
     return df
 
-def data_wrangling(df,periodo):
-    df = borrar_uc_nan(df)
-
-    cols_fillna_sindatos = ['contrato','unidad_de_lectura','folio','no_de_poste','cod_mat',
-                            'codigo_postal','tarfia','nivel_de_tension','actividad_economica',
-                           'departamento','municipio','zona','tipo_tarifa']
-    
-    df = llenar_val_vacios_str(df,cols_fillna_sindatos,'sin_dato')
-
-    cols_fillna_sindatos = ['medidor_interior']
-    df = llenar_val_vacios_str(df,cols_fillna_sindatos,'no')
-
-    cols_fillna_sindatos = ['kw_cont','multiplicador','cant_ttarifa']
-    df = llenar_val_vacios_numeric(df,cols_fillna_sindatos,0)
-
-    cols_fillna_sindatos = ['fecha_de_alta']
-    df = llenar_val_vacios_datetime(df,cols_fillna_sindatos,'00/00/0000')
-    
-    df.nivel_de_tension = df.nivel_de_tension.astype(str).str.split('.').str[0]
-
-    # borrar_por_ciclos_vacios 
-#     df = df[df.cant_null<=3]
-
-    df = llenar_val_vacios_ciclo(df, periodo)
-    
-    return df
-
-
 def build_feature_engeniering_pipeline(f_names_path,num_periodos):
     pipe_feature_eng_train = Pipeline(
     [

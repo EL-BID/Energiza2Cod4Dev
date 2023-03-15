@@ -19,51 +19,6 @@ import catboost as cb
 
 def get_preprocesor(preprocesor):
     
-    if preprocesor==1:
-        vars_dummy = ['departamento','tipo_tarifa','nivel_de_tension','medidor_interior']
-        vars_enc = ['codigo_postal']
-        t = [
-            ('dummy_var', ToDummy(vars_dummy), vars_dummy),
-            ('enc_var', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1), vars_enc),
-            ('te_cod_mat', TeEncoder(['cod_mat']), ['cod_mat']),
-            ('te_ae', TeEncoder(['actividad_economica']), ['actividad_economica']),
-            ('te_tarifa', TeEncoder(['tarfia']), ['tarfia']),
-            ]
-
-        preprocessor = ColumnTransformer(transformers= t,remainder='passthrough')
-
-    if preprocesor==2:
-        vars_dummy = ['departamento','tipo_tarifa','nivel_de_tension','medidor_interior']
-        vars_enc = ['codigo_postal','cod_mat','actividad_economica','tarfia']
-        t = [
-            ('dummy_var', ToDummy(vars_dummy), vars_dummy),
-            ('enc_var', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1), vars_enc),
-            ]
-
-        preprocessor = ColumnTransformer(transformers= t,remainder='passthrough')
-
-    if preprocesor==3:
-        pipe_ae = Pipeline([
-            ('cardinality_reducer', CardinalityReducer(threshold=0.001)),
-            ('te',ToDummy(['actividad_economica']))
-        ])
-
-        pipe_tarifa = Pipeline([
-            ('cardinality_reducer', CardinalityReducer(threshold=0.001)),
-            ('te',TeEncoder(['tarfia'],w=50))
-        ])
-        vars_dummy = ['departamento','tipo_tarifa','medidor_interior']
-        vars_enc = ['codigo_postal','nivel_de_tension']
-        t_features = [
-            ('dummy_var', ToDummy(vars_dummy), vars_dummy),
-            ('enc_var', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1), vars_enc),
-            ('te_cod_mat', TeEncoder(['cod_mat'],w=10), ['cod_mat']),
-            ('te_ae', pipe_ae, ['actividad_economica']),
-            ('te_tarifa', pipe_tarifa, ['tarfia']),
-            ]
-
-        preprocessor = ColumnTransformer(transformers= t_features,remainder='passthrough')
-        
     if preprocesor==4:
         # Actividad 
         pipe_actividad = Pipeline([
