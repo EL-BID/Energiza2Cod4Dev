@@ -149,7 +149,7 @@ La red neuronal multicapa es una red donde todas las señales van en una misma d
 En lo que respecta a la problemática de detección de fraude, las entradas son las variables con sus respectivos pre-procesamientos descritos en las secciones anteriores y la capa de salida nos da la probabilidad de que un usuario esté cometiendo fraude.
 
 <div>
-    <img src="img/nn.png" width="40%" height="40%">
+    <img src="img/multicapa.png" width="40%" height="40%">
 </div>
 
 __Concatenación LSTM - Multicapa__
