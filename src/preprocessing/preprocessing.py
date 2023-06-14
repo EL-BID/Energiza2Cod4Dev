@@ -1,3 +1,22 @@
+"""
+Módulo preprocessing.py
+
+Este módulo contiene clases y funciones utilizadas para el preprocesamiento de datos antes de su análisis.
+
+Clases:
+- ToDummy: Transforma variables categóricas en variables dummy.
+- TeEncoder: Codifica variables categóricas utilizando target encoding.
+- CardinalityReducer: Reduce la cardinalidad de variables categóricas.
+- MinMaxScalerRow: Aplica la transformación Min-Max a las filas de una matriz.
+- TsfelVars: Calcula características utilizando la biblioteca tsfel.
+- ExtraVars: Crea características adicionales basadas en los valores anteriores.
+
+Funciones:
+- llenar_val_vacios_ciclo: Rellena los valores vacíos en las columnas de consumo con los valores anteriores o posteriores.
+- llenar_val_vacios_str: Rellena los valores vacíos en columnas de tipo string con un valor específico.
+- llenar_val_vacios_numeric: Rellena los valores vacíos en columnas numéricas con un valor específico.
+- build_feature_engeniering_pipeline: Construye una tubería de preprocesamiento para la ingeniería de características.
+"""
 from itertools import groupby
 import logging
 import numpy as np
@@ -9,6 +28,14 @@ from sklearn.pipeline import Pipeline
 logger = logging.getLogger()
 
 class ToDummy(BaseEstimator, TransformerMixin):
+    """
+    Clase ToDummy
+
+    Transforma variables categóricas en variables dummy.
+
+    Parámetros:
+    - cols: list, lista de columnas que se convertirán en variables dummy.
+    """
     def __init__(self, cols):
         self.cols = cols
 
@@ -33,6 +60,15 @@ class ToDummy(BaseEstimator, TransformerMixin):
         return self.dummy_names
     
 class TeEncoder(BaseEstimator, TransformerMixin):
+    """
+    Clase TeEncoder
+
+    Codifica variables categóricas utilizando target encoding.
+
+    Parámetros:
+    - cols: list, lista de columnas que se codificarán.
+    - w: int, peso para el cálculo del target encoding.
+    """
     def __init__(self, cols, w=20):
         self.cols = cols
         self.w = w
@@ -63,6 +99,15 @@ class TeEncoder(BaseEstimator, TransformerMixin):
 
 
 class CardinalityReducer(BaseEstimator, TransformerMixin):
+    """
+    Clase CardinalityReducer
+
+    Transformador para reducir la cardinalidad de variables categóricas.
+
+    Parámetros:
+    - cols: list, lista de columnas categóricas a reducir su cardinalidad.
+    - threshold: int, límite de frecuencia para agrupar categorías poco frecuentes en una categoría "otro".
+    """
     def __init__(self, threshold=.1):
         self.threshold = threshold
         
@@ -85,6 +130,14 @@ class CardinalityReducer(BaseEstimator, TransformerMixin):
         return X
     
 class MinMaxScalerRow(BaseEstimator, TransformerMixin):
+    """
+    Clase MinMaxScalerRow
+
+    Transformador para escalar las filas de una matriz utilizando Min-Max Scaling.
+
+    Parámetros:
+    - feature_range: tuple, rango de valores para el escalado.
+    """
     def fit(self, X, y=None):
         return self
 
@@ -94,6 +147,14 @@ class MinMaxScalerRow(BaseEstimator, TransformerMixin):
 
 
 class TsfelVars(BaseEstimator, TransformerMixin):
+    """
+    Clase TsfelVars
+
+    Transformador para extraer características de series de tiempo utilizando la librería tsfel.
+
+    Parámetros:
+    - time_column: str, nombre de la columna que contiene el tiempo.
+    """
 
     def __init__(self, features_names_path=None,num_periodos=12):
         self.num_periodos = num_periodos
@@ -147,6 +208,14 @@ class TsfelVars(BaseEstimator, TransformerMixin):
     
 
 class ExtraVars(BaseEstimator, TransformerMixin):
+    """
+    Clase ExtraVars
+
+    Transformador para generar variables adicionales basadas en datos de series de tiempo.
+
+    Parámetros:
+    - aggregation_functions: dict, diccionario que mapea el nombre de la nueva variable con una función de agregación.
+    """
     def __init__(self,num_periodos=3):
         self.num_periodos = num_periodos
 
@@ -204,11 +273,6 @@ class ExtraVars(BaseEstimator, TransformerMixin):
         return df_total_super   
     
     
-def borrar_uc_nan(df):
-    df = df[~(df.uc == 'nan')]
-    df = df[~(df.uc.isnull())]
-    return df
-
 def llenar_val_vacios_ciclo(df, cant_ciclos_validos):
     cols_consumo = [f'{i}_anterior' for i in range(cant_ciclos_validos, 0, -1)]
     
@@ -224,11 +288,6 @@ def llenar_val_vacios_str(df, cols,  str_value):
 def llenar_val_vacios_numeric(df, cols,  numeric_value):
     for x in cols:
         df.loc[:, x] = df[x].fillna(numeric_value)
-    return df
-
-def llenar_val_vacios_datetime(df, cols,  dt_value):
-    for x in cols:
-        df.loc[:, x] = df[x].fillna(dt_value)
     return df
 
 def build_feature_engeniering_pipeline(f_names_path,num_periodos):

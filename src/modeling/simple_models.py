@@ -1,115 +1,34 @@
+"""
+Módulo modelos_simples.py
+
+Este módulo contiene implementaciones de modelos simples utilizados en análisis de datos.
+
+Clases:
+- ChangeTrendPercentajeIdentifierWide: Un clasificador para identificar cambios en el porcentaje de tendencia en datos en formato amplio (wide).
+- ConstantConsumptionClassifierWide: Un clasificador para identificar consumos constantes en datos en formato amplio (wide).
+"""
+
 import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.base import ClassifierMixin
 from itertools import groupby
 
-class ChangeTrendPercentajeIdentifier(BaseEstimator, ClassifierMixin):
 
-    def __init__(self, last_base_value, last_eval_value, threshold):
-        self.last_base_value = last_base_value
-        self.last_eval_value = last_eval_value
-        self.threshold = threshold
-
-    def compute_trend_percentage(self, X):
-        last_values = X.last(f'{self.last_eval_value}M')['consumo'].tolist()
-        X = X.drop(X.index[-1:])
-        before_last_values = X.last(f'{self.last_base_value}M')['consumo'].tolist()
-        base = np.mean(before_last_values)
-        actual = np.mean(last_values)
-        return 100 * actual / base
-
-    def fit(self, X, y=None):
-        return self
-
-    def predict(self, X):
-        X_copy = X.copy()
-        X_copy.sort_values('date', inplace=True)
-        X_copy.set_index('date', inplace=True)
-        X_copy = X_copy.groupby(['index']).apply(self.compute_trend_percentage).rename('trend_perc').reset_index()
-#         X_copy = X_copy.groupby(['index']).swifter.apply(self.compute_trend_percentage).rename('trend_perc').reset_index()
-        X_copy['is_fraud'] = X_copy.trend_perc.progress_apply(lambda x: 1 if (100 - x) > self.threshold else 0)
-        return X_copy
-
-class LowMeanLastMonthClassifier(BaseEstimator, ClassifierMixin):
-
-        def __init__(self, fit_valid_years, last_month, err_cant):
-            self.fit_valid_years = fit_valid_years
-            self.last_month = last_month
-            self.err_cant = err_cant
-
-        def fit(self, X, y=None):
-            df = X[X.year.isin(self.fit_valid_years)]
-            df = df.groupby(['categoria', 'mes']).agg({'consumo': [np.std, np.size, np.mean]}).reset_index()
-            df.columns = ["".join(x) for x in df.columns]
-            df['err'] = df['consumostd'] / np.sqrt(df.consumosize.values)
-            self.model = df
-            return self
-
-        def get_cons_last_months(self, df):
-            last_months = self.last_month  # obtener los ultimos n meses
-            df['periodo'] = df.groupby(['index'])['date'].rank(ascending=False)
-            df = df[df['periodo'] <= last_months]
-            df = df.drop(columns=['periodo'])
-            return df
-
-        def predict(self, X):
-            df = self.get_cons_last_months(X)
-            self.df_last = df
-            df = df.merge(self.model, on=['categoria', 'mes'], how='left')  # se elimina fase y modifica mes
-            df = df.groupby(['index']).agg(
-                {'consumo': np.mean, 'consumomean': np.mean, 'err': np.mean}).reset_index()
-            df['prediccion'] = (df.consumo < (df.consumomean - (self.err_cant * df.err))).astype(int)
-
-            return df
-
-        
-
-class ConstantConsumptionClassifier(BaseEstimator, ClassifierMixin):
-    
-    def __init__(self, months):
-        self.last_months = months
-        
-    def fit(self, X, y=None):
-        return self
-
-    def predict(self, X):
-        """ esto funciona para formato long"""
-        df_variance=self.get_variance(X)
-        df_cant_zeros=self.get_cant_zeros(X)
-        df_variance = df_variance.merge(df_cant_zeros, on=['index'])
-        df_variance['has_almost_0'] = (df_variance.cant_ceros > 0).astype(int)  # por lo menos 1 cero
-        df_variance['has_all_0'] = (df_variance.cant_ceros == self.last_months).astype(int)  # todos son cero
-        df_variance['has_all_non_0'] = (df_variance.cant_ceros == 0).astype(int)  # ninguno es cero
-        df_variance = self.get_rules(df_variance)
-        return df_variance
-
-    def get_variance(self, df):
-        # obtener la varianza. Ya que esta nos indica cuanto varian los datos y esto nos dice que tan diferentes son
-        df_variance = df.groupby(['index']).agg({'consumo': [np.var, np.mean]}).reset_index()
-        df_variance.columns = ['index', 'var_consumo', 'mean_consumo']
-        return df_variance
-
-    def get_cant_zeros(self, df):
-        # obtener cantidad de cero por numcta o index
-        df_g_cant_ceros = df.groupby(['index']).apply(lambda x: np.sum(x.consumo.values == 0)).reset_index()
-        df_g_cant_ceros.columns = ['index', 'cant_ceros']
-        return df_g_cant_ceros
-
-    def get_rules(self, df):
-        # mascara: exactamente el mismo valor osea es constante hasta 5mts3
-        msk_rule1 = (df.has_all_non_0 == 1) & (df.var_consumo == 0) & (df.mean_consumo <= 5)
-        df['regla_const_under_5mtr3'] = msk_rule1.astype(int)
-        # mascara: exactamente el mismo valor osea es constante mayor a 5mts3
-        msk_rule2 = (df.has_all_non_0 == 1) & (df.var_consumo == 0) & (df.mean_consumo > 5)
-        df['regla_consump_constant'] = msk_rule2.astype(int)
-        # mascara: consumos similares pero hasta 6mts3
-        msk_rule3 = (df.has_all_non_0 == 1) & (df.var_consumo > 0) & (df.var_consumo < 0.5) & (df.mean_consumo <= 6)
-        df['regla_similar_lt_6mts3'] = msk_rule3.astype(int)
-        return df
 
 class ChangeTrendPercentajeIdentifierWide(BaseEstimator, ClassifierMixin):
+    
 
     def __init__(self, last_base_value, last_eval_value, threshold, is_wide = True):
+        """
+        Inicializa la clase ChangeTrendPercentajeIdentifierWide.
+
+        Parámetros:
+        - last_base_value: int, el número de valores base utilizados para el cálculo del porcentaje de tendencia.
+        - last_eval_value: int, el número de valores de evaluación utilizados para el cálculo del porcentaje de tendencia.
+        - threshold: float, el umbral utilizado para determinar si el porcentaje de tendencia indica un fraude.
+        - is_wide: bool, indica si los datos de entrada están en formato ancho (wide) o no.
+
+        """
         self.last_base_value = last_base_value
         self.last_eval_value = last_eval_value
         self.threshold = threshold
@@ -151,6 +70,13 @@ class ChangeTrendPercentajeIdentifierWide(BaseEstimator, ClassifierMixin):
 class ConstantConsumptionClassifierWide(BaseEstimator, ClassifierMixin):
     
     def __init__(self, min_count_constante):
+        """
+        Inicializa la clase ConstantConsumptionClassifierWide.
+
+        Parámetros:
+        - min_count_constante: int, el número mínimo de ocurrencias consecutivas de un valor para ser considerado constante.
+
+        """
         self.min_count_constante = min_count_constante
         
     def fit(self, X, y=None):
