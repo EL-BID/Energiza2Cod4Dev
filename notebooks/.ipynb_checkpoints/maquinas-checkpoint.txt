@@ -1,3 +1,0 @@
-ml.c5.18xlarge	72	144 GiB
-ml.c5.9xlarge	36	72 GiB
-ml.c5.4xlarge   16	32 GiB

@@ -1,18 +1,3 @@
-"""
-Este módulo contiene las implementaciones de los modelos supervisados utilizados en el proyecto de aprendizaje automático.
-
-Los modelos implementados son:
-
-- LGBMModel: Implementa un modelo de Gradient Boosting con LightGBM.
-- CATModel: Implementa un modelo de Gradient Boosting con CatBoost.
-- NNModel: Implementa un modelo de Red Neuronal.
-
-Cada modelo tiene métodos para entrenar y realizar predicciones.
-
-Nota: Este módulo requiere que se instalen las librerías LightGBM, CatBoost y TensorFlow para poder utilizar los modelos correspondientes.
-
-"""
-
 import numpy as np
 from tqdm import tqdm
 from sklearn.preprocessing import OrdinalEncoder
@@ -27,14 +12,13 @@ from imblearn.over_sampling import RandomOverSampler
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, train_test_split
 from sklearn.metrics import roc_auc_score, roc_curve, average_precision_score
 from sklearn.preprocessing import MinMaxScaler
-import tensorflow as tf
-import catboost as cb
+#import tensorflow as tf
+#import catboost as cb
 
-
-
+com_func = '''
 def get_preprocesor(preprocesor):
     
-    if preprocesor==4:
+    if preprocesor==1:
         # Actividad 
         pipe_actividad = Pipeline([
                     ('cardinality_reducer', CardinalityReducer(threshold=0.001)),
@@ -56,23 +40,75 @@ def get_preprocesor(preprocesor):
             ]
 
         preprocessor = ColumnTransformer(transformers= t_features,remainder='passthrough')
+    else:
+        preprocessor = None
 
     return preprocessor
 
-class LGBMModel():
-    
-        def __init__(self,cols_for_model,hyperparams,search_hip=False,sampling_th = 0.5,preprocesor_num = 3,sampling_method = 'under'):
-            """
-            Initializes the LGBMModel.
+def get_preprocesor(preprocesor):
+    preprocessor = ColumnTransformer(transformers= [],remainder='passthrough')
+    return preprocessor
+'''
 
-            Args:
-                cols_for_model (list): The columns to be used for modeling.
-                hyperparams: The hyperparameters for the LGBMClassifier.
-                search_hip (bool): Flag indicating whether to perform hyperparameter search.
-                sampling_th (float): The sampling threshold.
-                preprocesor_num (int): The preprocessor number.
-                sampling_method (str): The sampling method ('over' or 'under').
-            """
+def get_preprocesor(preprocesor):
+    if preprocesor==1:
+        vars_dummy = ['cant_consumo_est','cant_estado_0','cant_estado_1','cant_estado_2','cant_estado_3','cant_estado_4','mes','bimestre','trimestre','cuatrimestre','semestre','cant_categorias','ult_categoria','categ_mas_frecuente','cambios_categoria']
+        t = [
+            ('dummy_var', ToDummy(vars_dummy), vars_dummy),
+            ]
+
+        preprocessor = ColumnTransformer(transformers= t,remainder='passthrough')
+    
+    com1='''
+    if preprocesor==1:
+        vars_dummy = ['departamento','tipo_tarifa','nivel_de_tension','medidor_interior']
+        vars_enc = ['codigo_postal']
+        t = [
+            ('dummy_var', ToDummy(vars_dummy), vars_dummy),
+            ('enc_var', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1), vars_enc),
+            ('te_cod_mat', TeEncoder(['cod_mat']), ['cod_mat']),
+            ('te_ae', TeEncoder(['actividad_economica']), ['actividad_economica']),
+            ('te_tarifa', TeEncoder(['tarfia']), ['tarfia']),
+            ]
+
+        preprocessor = ColumnTransformer(transformers= t,remainder='passthrough')
+
+    if preprocesor==2:
+        vars_dummy = ['departamento','tipo_tarifa','nivel_de_tension','medidor_interior']
+        vars_enc = ['codigo_postal','cod_mat','actividad_economica','tarfia']
+        t = [
+            ('dummy_var', ToDummy(vars_dummy), vars_dummy),
+            ('enc_var', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1), vars_enc),
+            ]
+
+        preprocessor = ColumnTransformer(transformers= t,remainder='passthrough')
+
+    if preprocesor==3:
+        pipe_ae = Pipeline([
+            ('cardinality_reducer', CardinalityReducer(threshold=0.001)),
+            ('te',ToDummy(['actividad_economica']))
+        ])
+
+        pipe_tarifa = Pipeline([
+            ('cardinality_reducer', CardinalityReducer(threshold=0.001)),
+            ('te',TeEncoder(['tarfia'],w=50))
+        ])
+        vars_dummy = ['departamento','tipo_tarifa','medidor_interior']
+        vars_enc = ['codigo_postal','nivel_de_tension']
+        t_features = [
+            ('dummy_var', ToDummy(vars_dummy), vars_dummy),
+            ('enc_var', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1), vars_enc),
+            ('te_cod_mat', TeEncoder(['cod_mat'],w=10), ['cod_mat']),
+            ('te_ae', pipe_ae, ['actividad_economica']),
+            ('te_tarifa', pipe_tarifa, ['tarfia']),
+            ]
+
+        preprocessor = ColumnTransformer(transformers= t_features,remainder='passthrough')
+        '''
+    return preprocessor
+
+class LGBMModel():
+        def __init__(self,cols_for_model,hyperparams,search_hip=False,sampling_th = 0.5,preprocesor_num = 3,sampling_method = 'under'):
             self.cols_for_model = cols_for_model
             self.sampling_th = sampling_th
             self.preprocesor_num = preprocesor_num
@@ -116,12 +152,17 @@ class LGBMModel():
                     "categorical_feature": "auto",
                     "feature_name": "auto",
                 }
+            
             new_fit_params = {'lgbmclassifier__' + key: fit_params[key] for key in fit_params}
             pipe_preproceso_model.set_params(**params)
             pipe_preproceso_model.fit(df_train[self.cols_for_model], y_train, **new_fit_params)
         
             return pipe_preproceso_model
             
+            
+
+
+        
         def find_hyp_lgbm_model(self, X_train,y_train,X_val,y_val,imba_pipeline):
                 fit_params = {
                      'eval_metric' : ['auc'],
@@ -131,6 +172,7 @@ class LGBMModel():
                                  ],
                     "categorical_feature": "auto",
                     "feature_name": "auto",
+                    "verbose" : "0"
                 }
 
                 param_test ={
@@ -161,7 +203,7 @@ class LGBMModel():
                                        n_iter = 60,
                                        refit=True,
                                        random_state = 314)
-                random_imba.fit(X_train, y_train, **new_fit_params);
+                random_imba.fit(X_train, y_train, **new_fit_params)
                 print('\nBest score reached: {} with params: {} '.format(random_imba.best_score_, random_imba.best_params_))
                 return random_imba.best_score_, random_imba.best_params_
             
@@ -246,17 +288,6 @@ class CATModel():
 class NNModel():
     
         def __init__(self,features_names,spents_names,search_hip=False,sampling_th = 0.5,preprocesor_num = 3,sampling_method = 'under'):
-            """
-            Clase para un modelo de red neuronal feedforward.
-
-            Args:
-            - features_names: lista de nombres de las características.
-            - spents_names: lista de nombres de los consumos.
-            - search_hip: booleano que indica si se debe buscar hiperparámetros (opcional).
-            - sampling_th: umbral de muestreo para el método de muestreo (opcional).
-            - preprocesor_num: número del preprocesador a utilizar (opcional).
-            - sampling_method: método de muestreo a utilizar ('over' o 'under') (opcional).
-            """
             self.features_names = features_names
             self.spents_names = spents_names
             self.sampling_th = sampling_th
@@ -365,17 +396,6 @@ class NNModel():
 class LSTMNNModel():
     
         def __init__(self,features_names,spents_names,search_hip=False,sampling_th = 0.5,preprocesor_num = 3,sampling_method = 'under'):
-            """
-            Clase para un modelo de red neuronal LSTM.
-
-            Args:
-            - features_names: lista de nombres de las características.
-            - spents_names: lista de nombres de los gastos.
-            - search_hip: booleano que indica si se debe buscar hiperparámetros (opcional).
-            - sampling_th: umbral de muestreo (opcional).
-            - preprocesor_num: número de preprocesador a utilizar (opcional).
-            - sampling_method: método de muestreo a utilizar (opcional).
-            """
             self.features_names = features_names
             self.spents_names = spents_names
             self.sampling_th = sampling_th
