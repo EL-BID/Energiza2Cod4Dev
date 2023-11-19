@@ -29,16 +29,24 @@ from sklearn.metrics import roc_auc_score, roc_curve, average_precision_score
 from sklearn.preprocessing import MinMaxScaler
 import tensorflow as tf
 import catboost as cb
+from sklearn.preprocessing import FunctionTransformer
+from sklearn.ensemble import StackingClassifier
+from sklearn.linear_model import LogisticRegression
 
 
+def binary_area_peligrosa(x):
+    return x.map({'zona peligrosa':1,'zona no peligrosa':0}).to_frame()
 
 def get_preprocesor(preprocesor):
     
-    if preprocesor==4:
+    if preprocesor==-1:
+        preprocessor = ColumnTransformer(transformers= [],remainder='passthrough')
+        
+    if preprocesor==2:
         # Actividad 
         pipe_actividad = Pipeline([
                     ('cardinality_reducer', CardinalityReducer(threshold=0.001)),
-                    ('a_dummy',ToDummy(['actividad']))
+                    ('a_dummy',ToDummy(['distrito']))
                 ])
 
         # Segmento Tarifa
@@ -47,16 +55,56 @@ def get_preprocesor(preprocesor):
                     ('tarifa_te',TeEncoder(['tipo_tarifa'],w=20))
                 ])
         
-        vars_enc = ['zona','nivel_tension']
+        pipe_distrito = Pipeline([
+                    ('cardinality_reducer', CardinalityReducer(threshold=0.001)),
+                    ('distrito_te',TeEncoder(['id_distrito'],w=20))
+                ])
+        
+        vars_enc = ['id_cant_fases','id_tarifa']
         t_features = [
             ('var_encoder', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1), vars_enc),
-            ('material_isntalacion_te', TeEncoder(['material_instalacion'],w=10), ['material_instalacion']),
-            ('actividad_cr_dummy', pipe_actividad, ['actividad']),
-            ('tarifa_cr_te', pipe_tarifa, ['tipo_tarifa']),
+            # ('a_dummy',ToDummy(['clasif_tarifa'])),
+            # ('material_isntalacion_te', TeEncoder(['material_instalacion'],w=10), ['material_instalacion']),
+            # ('actividad_cr_dummy', pipe_actividad, ['distrito']),
+            ('ditrito_cr_te', pipe_distrito, ['id_distrito']),
+            ('area_peligrosa_binary', FunctionTransformer(), 'area_peligrosa'),
             ]
 
         preprocessor = ColumnTransformer(transformers= t_features,remainder='passthrough')
+        
+    if preprocesor==3:
+        pipe_tarifa = Pipeline([
+                    ('cardinality_reducer', CardinalityReducer(threshold=0.003)),
+                    ('te',TeEncoder(['id_tarifa'],w=1))
+                ])
+        pipe_marca_medidor = Pipeline([
+                    ('cardinality_reducer', CardinalityReducer(threshold=0.03)),
+                    ('te',TeEncoder(['marca_medidor'],w=1))
+                ])
+        pipe_distrito = Pipeline([
+                    ('cardinality_reducer', CardinalityReducer(threshold=0.01)),
+                    ('te',TeEncoder(['id_distrito'],w=20))
+                ])
+        pipe_tipo_medidor = Pipeline([
+                    ('cardinality_reducer', CardinalityReducer(threshold=0.01)),
+                    ('te',TeEncoder(['id_tipo_medidor'],w=20))
+                ])
+        pipe_id_ciu = Pipeline([
+                    ('cardinality_reducer', CardinalityReducer(threshold=0.002)),
+                    ('te',TeEncoder(['id_ciu'],w=20))
+                ])
+        vars_dummy = ['tip_instalacion','tipo_cliente']
+        t_features = [
+            ('dummy_var', ToDummy(vars_dummy), vars_dummy),
+            ('pipe_tarifa', pipe_tarifa, ['id_tarifa']),
+            ('pipe_marca_medidor', pipe_marca_medidor, ['marca_medidor']),
+            ('pipe_distrito', pipe_distrito, ['id_distrito']),
+            ('pipe_tipo_medidor', pipe_tipo_medidor, ['id_tipo_medidor']),
+            ('pipe_id_ciu', pipe_id_ciu, ['id_ciu']),
+            ('area_peligrosa_binary', FunctionTransformer(binary_area_peligrosa), 'area_peligrosa'),
+            ]
 
+        preprocessor = ColumnTransformer(transformers= t_features,remainder='passthrough')
     return preprocessor
 
 class LGBMModel():
@@ -99,9 +147,11 @@ class LGBMModel():
             pipe_preproceso_model = self.build_pipeline_preproceso_model()
             
             preprocessor_features = pipe_preproceso_model.steps[0][1]
+            # print(preprocessor_features)
             preprocessor_features.fit(df_train[self.cols_for_model], y_train)
             df_val_tra = preprocessor_features.transform(df_val[self.cols_for_model])
-            
+            # print(df_val_tra.shape)
+            # print(df_val_tra.columns)
             if self.search_hip:
                 self.best_score_, self.hyperparams = self.find_hyp_lgbm_model(df_train[self.cols_for_model],y_train,df_val_tra,y_val,pipe_preproceso_model)
                 
@@ -117,7 +167,11 @@ class LGBMModel():
                     "feature_name": "auto",
                 }
             new_fit_params = {'lgbmclassifier__' + key: fit_params[key] for key in fit_params}
-            pipe_preproceso_model.set_params(**params)
+            
+            if params is not None:
+                pipe_preproceso_model.set_params(**params)
+                
+            #pipe_preproceso_model.set_params(**params)
             pipe_preproceso_model.fit(df_train[self.cols_for_model], y_train, **new_fit_params)
         
             return pipe_preproceso_model
@@ -162,7 +216,7 @@ class LGBMModel():
                                        refit=True,
                                        random_state = 314)
                 random_imba.fit(X_train, y_train, **new_fit_params);
-                print('\nBest score reached: {} with params: {} '.format(random_imba.best_score_, random_imba.best_params_))
+                # print('\nBest score reached: {} with params: {} '.format(random_imba.best_score_, random_imba.best_params_))
                 return random_imba.best_score_, random_imba.best_params_
             
 class CATModel():
@@ -207,7 +261,10 @@ class CATModel():
                         'early_stopping_rounds':30
                             }
             new_fit_params = {'catboostclassifier__' + key: fit_params[key] for key in fit_params}
-            pipe_preproceso_model.set_params(**params)
+            
+            if params is not None:
+                pipe_preproceso_model.set_params(**params)
+            
             pipe_preproceso_model.fit(df_train[self.cols_for_model], y_train, **new_fit_params);
             return pipe_preproceso_model
 
@@ -240,7 +297,7 @@ class CATModel():
                                        random_state = 314)
 
             random_imba.fit(X_train, y_train, **new_fit_params);
-            print('\nBest score reached: {} with params: {} '.format(random_imba.best_score_, random_imba.best_params_))
+            # print('\nBest score reached: {} with params: {} '.format(random_imba.best_score_, random_imba.best_params_))
             return random_imba.best_score_, random_imba.best_params_
             
 class NNModel():
@@ -478,3 +535,21 @@ class LSTMNNModel():
         #           class_weight=class_weight
                            )
             return model
+        
+        
+def compute_stacking_model(final_lgbm_model,final_cb_model,df_val_f,y_val_f,cols_for_model):
+    # Definir el meta-modelo (StackingClassifier)
+    meta_model = LogisticRegression(class_weight='balanced')
+    # Crear el modelo de stacking
+    stacking_model = StackingClassifier(
+        estimators=[
+            ('lgbm1', final_lgbm_model),
+            ('catboost', final_cb_model)
+        ],
+        final_estimator=meta_model,
+        cv='prefit'
+    )
+
+    # Hacer predicciones df_val_f, y_val_f
+    combination_final = stacking_model.fit(df_val_f[cols_for_model],y_val_f)
+    return combination_final

@@ -1,3 +1,7 @@
+"""
+Módulo para realizar selección de características en conjuntos de datos.
+Contiene funciones que implementan diferentes métodos de selección de características.
+"""
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -5,6 +9,19 @@ from sklearn.ensemble import RandomForestClassifier
 from boruta import BorutaPy
 
 def feature_selection_by_correlation(x_train, y_train, variables,method='pearson', th=0.9):
+    """
+    Realiza la selección de características basada en la correlación entre variables y la variable objetivo.
+    
+    Args:
+        x_train (pd.DataFrame): Conjunto de datos de entrenamiento (variables independientes).
+        y_train (pd.Series): Variable objetivo.
+        variables (list): Lista de variables a considerar.
+        method (str): Método de correlación a utilizar ('pearson' por defecto).
+        th (float): Umbral de correlación para considerar variables como altamente correlacionadas (0.9 por defecto).
+    
+    Returns:
+        list: Lista de variables seleccionadas.
+    """
     print('Calculando Correlación Entre Variables')
     x_train['target'] = y_train
     df_corr = x_train[variables + ['target']].corr(method=method)
@@ -25,6 +42,18 @@ def feature_selection_by_correlation(x_train, y_train, variables,method='pearson
     return variables
 
 def feature_selection_by_constant(x_train, y_train, variables, th=0.99):
+    """
+    Realiza la selección de características eliminando variables con valores constantes en el conjunto de entrenamiento.
+    
+    Args:
+        x_train (pd.DataFrame): Conjunto de datos de entrenamiento (variables independientes).
+        y_train (pd.Series): Variable objetivo.
+        variables (list): Lista de variables a considerar.
+        th (float): Umbral de variabilidad para considerar una variable como constante (0.99 por defecto).
+    
+    Returns:
+        list: Lista de variables seleccionadas.
+    """
     num_rows = x_train.shape[0]
     allLabels = variables
     constant_per_feature = {label: x_train[label].value_counts().iloc[0]/num_rows for label in allLabels}
@@ -33,6 +62,17 @@ def feature_selection_by_constant(x_train, y_train, variables, th=0.99):
     return variables
 
 def feature_selection_by_boruta(X_train, y_train, N=10):
+    """
+    Realiza la selección de características utilizando el algoritmo Boruta.
+
+    Args:
+        X_train (pd.DataFrame): Conjunto de datos de entrenamiento (variables independientes).
+        y_train (pd.Series): Variable objetivo.
+        N (int): Número de iteraciones para el algoritmo Boruta (10 por defecto).
+
+    Returns:
+        list: Lista de variables seleccionadas.
+    """
     d = {}
     X_train = X_train.copy()
     y_train = y_train.copy()
