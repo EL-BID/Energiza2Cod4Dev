@@ -54,7 +54,9 @@ def train_lgbm_model():
     print('---Finalizado: Entrenamiento modelo LGBM sobre Dataset---')
     return X_train, X_test, y_train, y_test, cols_for_model, lgbm_model
 
-def predicciones_mes(series_features_mes, umbral_fraude = 0.90):
+def predicciones_mes(series_features_mes = None, umbral_fraude = 0.90, num_resultados = 10000):
+    if series_features_mes is None:
+        series_features_mes = pd.read_parquet(nombre_path_historico_series_features_mes)
     variables_categoricas = ['cant_consumo_est','cant_estado_0','cant_estado_1','cant_estado_2','cant_estado_3','cant_estado_4','mes','bimestre','trimestre','cuatrimestre','semestre','cant_categorias','ult_categoria','categ_mas_frecuente','cambios_categoria']
     variables_consumo = [x for x in series_features_mes.columns if '_anterior' in x]
     features_selected = pd.read_parquet(nombre_path_historico_features_selected)
@@ -76,7 +78,9 @@ def predicciones_mes(series_features_mes, umbral_fraude = 0.90):
     series_features_mes.sort_values('indice_riesgo',ascending=False,inplace=True)
     series_features_mes.to_parquet(nombre_path_historico_predicciones_ultimo_mes)
     cols_export = ['instalacion'] + cols_loc + variables_categoricas + variables_consumo + ['indice_riesgo']
-    series_excel = series_features_mes.query(f'indice_riesgo>{umbral_fraude}')
+    # Filtramos el reporte por umbral de índice de riesgo o por total de instalaciones
+    #series_excel = series_features_mes.query(f'indice_riesgo>{umbral_fraude}')
+    series_excel = series_features_mes[:num_resultados]
     series_excel[cols_export].to_excel(nombre_path_historico_predicciones_ultimo_mes_excel)
     print('--- Finalizada la predicción de índice de riesgo de fraude para el mes ---')
     return series_features_mes
